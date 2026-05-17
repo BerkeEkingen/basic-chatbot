@@ -14,6 +14,9 @@ A simple Python GUI chatbot built with tkinter.
 - Real-time clock feature
 - Auto close on exit
 - Colored chat messages
+- Chat history
+- Flask web interface
+  
 
 ## Technologies
 - Python
