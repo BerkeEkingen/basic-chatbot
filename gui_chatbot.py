@@ -1,7 +1,38 @@
+from flask import Flask, request, render_template_string
 import random
-import tkinter as tk
+import datetime
+
+app = Flask(__name__)
 
 user_name = ""
+chat_history = []
+
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Web Chatbot</title>
+</head>
+<body>
+
+    <h1>Basic Web Chatbot</h1>
+
+    <form method="POST">
+        <input type="text" name="message" placeholder="Type your message" autofocus>
+        <button type="submit">Send</button>
+    </form>
+
+    <hr>
+
+    {% for chat in chat_history %}
+        <p><b>You:</b> {{ chat.user }}</p>
+        <p><b>AI:</b> {{ chat.bot }}</p>
+        <hr>
+    {% endfor %}
+
+</body>
+</html>
+"""
 
 def get_bot_response(user_input):
     global user_name
@@ -17,13 +48,16 @@ def get_bot_response(user_input):
         else:
             return "I don't know your name yet."
 
+    elif "what time is it" in user_input:
+        current_time = datetime.datetime.now().strftime("%H:%M")
+        return f"The current time is {current_time} ⏰"
+
     elif "hello" in user_input:
         responses = [
             "Hello 😄",
             "Hi there 👋",
             "Hey!",
-            "Nice to see you 😎",
-            "Hello human 🤖"
+            "Nice to see you 😎"
         ]
         return random.choice(responses)
 
@@ -33,64 +67,28 @@ def get_bot_response(user_input):
     elif "your name" in user_input:
         return "I'm BasicBot!"
 
-    elif "good morning" in user_input:
-        return "Good morning!"
-
-    elif "good night" in user_input:
-        return "Good night! 🌙"
-
-    elif "who made you" in user_input:
-        return "Berke created me 😎"
-
-    elif "ai" in user_input:
-        return "AI is the future 🤖"
-
-    elif "machine learning" in user_input:
-        return "Machine learning helps computers learn from data."
-
-    elif "coding" in user_input:
-        return "Coding gets easier with practice!"
-
-    elif "sad" in user_input:
-        return "I hope your day gets better ❤️"
-
-    elif "happy" in user_input:
-        return "That's great 😄"
-
     elif "bye" in user_input:
         return "Goodbye!"
 
     else:
         return "I don't understand."
 
-def send_message():
-    user_message = entry.get()
-    if user_message.strip() == "":
-        return
+@app.route("/", methods=["GET", "POST"])
+def home():
 
-    chat_box.insert(tk.END, "You: " + user_message + "\n", "user")
-    bot_response = get_bot_response(user_message)
-    chat_box.insert(tk.END, "AI: " + bot_response + "\n\n", "bot")
+    if request.method == "POST":
+        user_message = request.form["message"]
+        bot_response = get_bot_response(user_message)
 
-    entry.delete(0, tk.END)
+        chat_history.append({
+            "user": user_message,
+            "bot": bot_response
+        })
 
-window = tk.Tk()
-window.title("Basic Chatbot")
-window.geometry("500x500")
-window.configure(bg="#1e1e1e")
+    return render_template_string(
+        HTML,
+        chat_history=chat_history
+    )
 
-chat_box = tk.Text(window, height=25, width=60, bg="#121212", fg="white", insertbackground="white")
-chat_box.tag_config("user", foreground="#4ea1ff")
-chat_box.tag_config("bot", foreground="#00ff99")
-chat_box.pack(pady=10)
-
-entry = tk.Entry(window, width=45)
-entry.pack(pady=5)
-
-send_button = tk.Button(window, text="Send", command=send_message, bg="#3a3a3a", fg="white")
-send_button.pack(pady=5)
-
-entry.bind("<Return>", lambda event: send_message())
-
-
-window.mainloop()
+if __name__ == "__main__":
+    app.run(debug=True)
